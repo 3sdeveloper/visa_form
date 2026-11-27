@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sample Residence Visa Application · GovFill demo</title>
+  <style>
+    :root {
+      --bg: #f6f7f9; --card: #fff; --text: #1a1d23; --muted: #5d6573; --line: #dde1e7;
+      --accent: #2557d6; --accent-ink: #fff; --error: #c62828; --ok: #1b7f4b; --banner: #fff6db; --banner-line: #f0d98a;
+      --radius: 10px;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111318; --card: #1a1d24; --text: #e8eaee; --muted: #9aa2b1; --line: #2c313b;
+        --accent: #6d93ff; --accent-ink: #0d1020; --error: #ff7b7b; --ok: #5fd39a; --banner: #2b2614; --banner-line: #5c4f22;
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.5; }
+    main { max-width: 860px; margin: 0 auto; padding: 32px 20px 64px; }
+    .banner { background: var(--banner); border: 1px solid var(--banner-line); border-radius: var(--radius);
+      padding: 10px 14px; font-size: 14px; margin-bottom: 24px; }
+    h1 { font-size: 26px; margin: 0 0 4px; }
+    .lede { color: var(--muted); margin: 0 0 24px; }
+    .steps { display: flex; gap: 8px; list-style: none; padding: 0; margin: 0 0 20px; flex-wrap: wrap; }
+    .steps li { font-size: 13px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+    .steps li.active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+    .steps li.done { color: var(--ok); border-color: var(--ok); }
+    fieldset { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 20px; margin: 0 0 20px; }
+    legend { font-weight: 600; padding: 0 6px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .full { grid-column: 1 / -1; }
+    label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .req::after { content: " *"; color: var(--error); }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    input, select, textarea { width: 100%; font: inherit; color: var(--text); background: var(--bg);
+      border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+    input[aria-invalid="true"], select[aria-invalid="true"] { border-color: var(--error); }
+    .err { font-size: 12px; color: var(--error); margin-top: 4px; min-height: 0; }
+    .radio-row { display: flex; gap: 20px; padding-top: 6px; }
+    .radio-row label { display: flex; align-items: center; gap: 6px; font-weight: 400; margin: 0; }
+    .radio-row input { width: auto; }
+    .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; }
+    .check input { width: auto; margin-top: 4px; }
+    .actions { display: flex; gap: 12px; justify-content: space-between; flex-wrap: wrap; }
+    button { font: inherit; font-weight: 600; border-radius: 8px; padding: 10px 18px; cursor: pointer;
+      border: 1px solid var(--line); background: var(--card); color: var(--text); }
+    button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .panel[hidden] { display: none; }
+    .summary { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .summary th { text-align: left; font-weight: 500; color: var(--muted); width: 40%; padding: 6px 8px 6px 0; vertical-align: top; }
+    .summary td { padding: 6px 0; border-bottom: 1px solid var(--line); word-break: break-word; }
+    .result { text-align: center; padding: 24px; }
+    .result .ref { font-family: ui-monospace, Menlo, monospace; font-size: 20px; color: var(--ok); }
+    pre { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow: auto;
+      font-size: 12px; text-align: left; }
+  </style>
+</head>
+<body>
+<main>
+  <div class="banner" role="note">
+    <strong>Sample form for demos and testing.</strong> This is not a government portal. Nothing you type is
+    sent anywhere; it stays in your browser.
+  </div>
+
+  <h1>Residence Visa Application</h1>
+  <p class="lede">Fields marked <span class="req"></span> are required. Use the sample data button to try it quickly.</p>
+
+  <ol class="steps" id="steps" aria-label="Progress">
+    <li data-step="0">1. Applicant</li>
+    <li data-step="1">2. Passport</li>
+    <li data-step="2">3. Visa &amp; sponsor</li>
+    <li data-step="3">4. Attachments</li>
+    <li data-step="4">5. Review</li>
+  </ol>
+
+  <form id="visa-form" novalidate>
+    <!-- Step 1: applicant -->
+    <section class="panel" data-panel="0">
+      <fieldset>
+        <legend>Applicant details</legend>
+        <div class="grid">
+          <div>
+            <label for="first_name" class="req">Given names</label>
+            <input id="first_name" name="first_name" required autocomplete="given-name" />
+            <div class="err"></div>
+          </div>
+          <div>
+            <label for="last_name" class="req">Surname</label>
+            <input id="last_name" name="last_name" required autocomplete="family-name" />
+            <div class="err"></div>
+          </div>
+          <div>
+            <label for="nationality" class="req">Nationality</label>
+            <select id="nationality" name="nationality" required>
+              <option value="">Select…</option>
+              <option>Egypt</option><option>India</option><option>Pakistan</option>
+              <option>Philippines</option><option>United Kingdom</option><option>Other</option>
+            </select>
+            <div class="err"></div>
+          </div>
+          <div>
+            <label for="dob" class="req">Date of birth</label>
+            <input id="dob" name="dob" type="date" required autocomplete="bday" />
+            <div class="err"></div>
+          </div>
+          <div>
+            <span class="req" style="font-size:14px;font-weight:500">Sex</span>
+            <div class="radio-row" role="radiogroup" aria-label="Sex">
+              <label><input type="radio" name="sex" value="M" required /> Male</label>
+              <label><input type="radio" name="sex" value="F" /> Female</label>
+            </div>
+            <div class="err" data-for="sex"></div>
+          </div>
+          <div>
+            <label for="place_of_birth">Place of birth</label>
+            <input id="place_of_birth" name="place_of_birth" />
+          </div>
+          <div>
+            <label for="email" class="req">Email</label>
+            <input id="email" name="email" type="email" required autocomplete="email" />
+            <div class="err"></div>
+          </div>
+          <div>
+            <label for="mobile" class="req">Mobile number</label>
+            <input id="mobile" name="mobile" type="tel" required placeholder="+971 50 123 4567"
+                   pattern="^\+?[0-9 ]{9,16}$" autocomplete="tel" />
+            <div class="err"></div>
+          </div>
+        </div>
+      </fieldset>
+    </section>
+
+    <!-- Step 2: passport -->
+    <section class="panel" data-panel="1" hidden>
+      <fieldset>
+        <legend>Passport</legend>
+        <div class="grid">
+          <div>
+            <label for="passport_no" class="req">Passport No.</label>
+            <input id="passport_no" name="passport_no" required pattern="^[A-Z0-9]{6,9}$"
+                   style="text-transform:uppercase" />
+            <div class="hint">6–9 letters or digits</div>
+            <div class="err"></div>
+          </div>
+          <div>
+            <label for="passport_issue_date">Date of issue</label>
+            <input id="passport_issue_date" name="passport_issue_date" type="date" />
+            <div class="err"></div>
+          </div>
+          <div>
+            <label for="passport_expiry" class="req">Date of expiry</label>
+            <input id="passport_expiry" name="passport_expiry" type="date" required />
+            <div class="hint">Must be valid for at least 6 months</div>
+            <div class="err"></div>
+          </div>
+          <div>
+            <label for="emirates_id_no">Emirates ID No. (if renewing)</label>
+            <input id="emirates_id_no" name="emirates_id_no" placeholder="784-XXXX-XXXXXXX-X"
+                   pattern="^784-?[0-9]{4}-?[0-9]{7}-?[0-9]$" />
+            <div class="err"></div>
+          </div>
+        </div>
+      </fieldset>
+    </section>
+
+    <!-- Step 3: visa & sponsor -->
+    <section class="panel" data-panel="2" hidden>
+      <fieldset>
+        <legend>Visa &amp; sponsor</legend>
+        <div class="grid">
+          <div>
+            <label for="application_type" class="req">Application type</label>
+            <select id="application_type" name="application_type" required>
+              <option value="">Select…</option>
+              <option value="new">New visa</option>
+              <option value="renewal">Renewal</option>
+            </select>
+            <div class="err"></div>
+          </div>
+          <div>
+            <label for="visa_type" class="req">Visa type</label>
+            <select id="visa_type" name="visa_type" required>
+              <option value="">Select…</option>
+              <option>Employment</option>
+              <option>Investor</option>
+            </select>
+            <div class="err"></div>
+          </div>
+          <div>
+            <label for="visa_file_no">Current visa file No.</label>
+            <input id="visa_file_no" name="visa_file_no" placeholder="201/2024/7/123456"
+                   pattern="^[0-9]{3}/[0-9]{4}/[0-9]{1,2}/[0-9]{4,7}$" />
+            <div class="hint">Required for renewals</div>
+            <div class="err"></div>
+          </div>
+          <div>
+            <label for="uid_no">UID No.</label>
+            <input id="uid_no" name="uid_no" inputmode="numeric" pattern="^[0-9]{6,12}$" />
+            <div class="err"></div>
+          </div>
+          <div>
+            <label for="visa_expiry">Current visa expiry</label>
+            <input id="visa_expiry" name="visa_expiry" type="date" />
+          </div>
+          <div>
+            <label for="profession" class="req">Profession</label>
+            <select id="profession" name="profession" required>
+              <option value="">Select…</option>
+              <option>Software Engineer</option><option>Accountant</option><option>General Manager</option>
+              <option>Sales Executive (Retail)</option><option>Sales Executive (Wholesale)</option>
+              <option>Marketing Specialist</option><option>Other</option>
+            </select>
+            <div class="err"></div>
+          </div>
+          <div class="full">
+            <label for="sponsor_company" class="req">Sponsor / employer company</label>
+            <input id="sponsor_company" name="sponsor_company" required autocomplete="organization" />
+            <div class="err"></div>
+          </div>
+          <div>
+            <label for="licence_no" class="req">Company licence No.</label>
+            <input id="licence_no" name="licence_no" required />
+            <div class="err"></div>
+          </div>
+          <div>
+            <label for="monthly_salary" class="req">Monthly salary (AED)</label>
+            <input id="monthly_salary" name="monthly_salary" type="number" min="1000" step="100" required />
+            <div class="err"></div>
+          </div>
+        </div>
+      </fieldset>
+    </section>
+
+    <!-- Step 4: attachments -->
+    <section class="panel" data-panel="3" hidden>
+      <fieldset>
+        <legend>Attachments</legend>
+        <div class="grid">
+          <div>
+            <label for="att_passport" class="req">Passport copy</label>
+            <input id="att_passport" name="att_passport" type="file" accept="image/*,application/pdf" required />
+            <div class="err"></div>
+          </div>
+          <div>
+            <label for="att_photo" class="req">Personal photo</label>
+            <input id="att_photo" name="att_photo" type="file" accept="image/*" required />
+            <div class="hint">White background, face centred</div>
+            <div class="err"></div>
+          </div>
+          <div>
+            <label for="att_visa">Current visa (renewals)</label>
+            <input id="att_visa" name="att_visa" type="file" accept="image/*,application/pdf" />
+          </div>
+          <div>
+            <label for="att_eid">Emirates ID (renewals)</label>
+            <input id="att_eid" name="att_eid" type="file" accept="image/*,application/pdf" />
+          </div>
+        </div>
+      </fieldset>
+    </section>
+
+    <!-- Step 5: review -->
+    <section class="panel" data-panel="4" hidden>
+      <fieldset>
+        <legend>Review your application</legend>
+        <table class="summary" id="summary"></table>
+        <p style="margin-top:20px">
+          <label class="check"><input type="checkbox" id="declaration" name="declaration" required />
+            I confirm the information above is correct.</label>
+          <span class="err" data-for="declaration"></span>
+        </p>
+      </fieldset>
+    </section>
+
+    <section class="panel" data-panel="5" hidden>
+      <fieldset class="result">
+        <h2 style="margin-top:0">Application submitted</h2>
+        <p>Reference number</p>
+        <p class="ref" id="ref"></p>
+        <p class="hint">Sample only: nothing was sent. The submitted data is shown below as JSON.</p>
+        <pre id="json"></pre>
+        <button type="button" id="restart">Start a new application</button>
+      </fieldset>
+    </section>
+
+    <div class="actions" id="actions">
+      <button type="button" id="fill-sample">Fill sample data</button>
+      <div style="display:flex;gap:12px">
+        <button type="button" id="back" disabled>Back</button>
+        <button type="button" class="primary" id="next">Next</button>
+      </div>
+    </div>
+  </form>
+</main>
+
+<script>
+(() => {
+  const form = document.getElementById("visa-form");
+  const panels = [...form.querySelectorAll(".panel")];
+  const stepItems = [...document.querySelectorAll("#steps li")];
+  const back = document.getElementById("back");
+  const next = document.getElementById("next");
+  const LAST_INPUT_STEP = 4;
+  let step = 0;
+
+  const MESSAGES = {
+    valueMissing: "This field is required.",
+    patternMismatch: "Please check the format.",
+    typeMismatch: "Please enter a valid value.",
+    rangeUnderflow: "Value is too low.",
+  };
+
+  function errBox(el) {
+    if (el.type === "radio" || el.type === "checkbox") return form.querySelector(`.err[data-for="${el.name}"]`);
+    return el.parentElement.querySelector(".err");
+  }
+
+  function setError(el, msg) {
+    const box = errBox(el);
+    if (box) box.textContent = msg || "";
+    el.setAttribute("aria-invalid", msg ? "true" : "false");
+  }
+
+  function customCheck(el) {
+    const v = el.value;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (el.id === "dob" && v) {
+      const age = (today - new Date(v)) / (365.25 * 864e5);
+      if (age < 18) return "Applicant must be at least 18 years old.";
+    }
+    if (el.id === "passport_expiry" && v) {
+      const min = new Date(today); min.setMonth(min.getMonth() + 6);
+      if (new Date(v) < min) return "Passport must be valid for at least 6 more months.";
+    }
+    if (el.id === "passport_issue_date" && v && new Date(v) > today) return "Issue date cannot be in the future.";
+    if (el.id === "visa_file_no" && !v && form.application_type.value === "renewal")
+      return "Required for renewals.";
+    return "";
+  }
+
+  function validateStep(i) {
+    let firstBad = null;
+    const fields = panels[i].querySelectorAll("input, select, textarea");
+    const seenRadio = new Set();
+    for (const el of fields) {
+      if (el.type === "radio") {
+        if (seenRadio.has(el.name)) continue;
+        seenRadio.add(el.name);
+        const ok = !el.required || form.querySelector(`input[name="${el.name}"]:checked`);
+        setError(el, ok ? "" : MESSAGES.valueMissing);
+        if (!ok && !firstBad) firstBad = el;
+        continue;
+      }
+      if (el.id === "passport_no") el.value = el.value.toUpperCase().trim();
+      let msg = "";
+      if (!el.checkValidity()) {
+        const k = Object.keys(MESSAGES).find((key) => el.validity[key]);
+        msg = MESSAGES[k] || el.validationMessage;
+      } else {
+        msg = customCheck(el);
+      }
+      setError(el, msg);
+      if (msg && !firstBad) firstBad = el;
+    }
+    if (firstBad) firstBad.focus();
+    return !firstBad;
+  }
+
+  function collect() {
+    const data = {};
+    for (const [k, v] of new FormData(form)) {
+      data[k] = v instanceof File ? (v.name || null) : v;
+    }
+    return data;
+  }
+
+  function renderSummary() {
+    const rows = [];
+    for (const panel of panels.slice(0, LAST_INPUT_STEP)) {
+      for (const el of panel.querySelectorAll("input, select")) {
+        if (el.type === "radio" && !el.checked) continue;
+        const label = el.type === "radio"
+          ? "Sex"
+          : (form.querySelector(`label[for="${el.id}"]`)?.textContent || el.name);
+        let value = el.type === "file" ? (el.files[0]?.name || "") : el.value;
+        if (el.tagName === "SELECT") value = el.selectedOptions[0]?.value ? el.selectedOptions[0].text : "";
+        const td = document.createElement("td"); td.textContent = value || "—";
+        const th = document.createElement("th"); th.textContent = label;
+        const tr = document.createElement("tr"); tr.append(th, td);
+        rows.push(tr);
+      }
+    }
+    document.getElementById("summary").replaceChildren(...rows);
+  }
+
+  function show(i) {
+    step = i;
+    panels.forEach((p, idx) => (p.hidden = idx !== i));
+    stepItems.forEach((li, idx) => {
+      li.classList.toggle("active", idx === i);
+      li.classList.toggle("done", idx < i);
+    });
+    const finished = i > LAST_INPUT_STEP;
+    document.getElementById("actions").hidden = finished;
+    back.disabled = i === 0;
+    next.textContent = i === LAST_INPUT_STEP ? "Submit application" : "Next";
+    if (i === LAST_INPUT_STEP) renderSummary();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  next.addEventListener("click", () => {
+    if (!validateStep(step)) return;
+    if (step < LAST_INPUT_STEP) return show(step + 1);
+    const ref = "SVA-" + new Date().getFullYear() + "-" + String(Math.floor(Math.random() * 1e6)).padStart(6, "0");
+    document.getElementById("ref").textContent = ref;
+    document.getElementById("json").textContent = JSON.stringify({ reference: ref, ...collect() }, null, 2);
+    show(LAST_INPUT_STEP + 1);
+  });
+  back.addEventListener("click", () => step > 0 && show(step - 1));
+
+  form.addEventListener("input", (e) => {
+    if (e.target.getAttribute("aria-invalid") === "true") setError(e.target, "");
+  });
+  form.addEventListener("submit", (e) => e.preventDefault());
+
+  document.getElementById("restart").addEventListener("click", () => {
+    form.reset();
+    form.querySelectorAll("[aria-invalid]").forEach((el) => setError(el, ""));
+    show(0);
+  });
+
+  // Sample values match the "Rahul Menon" demo customer in the backend.
+  document.getElementById("fill-sample").addEventListener("click", () => {
+    const sample = {
+      first_name: "Rahul", last_name: "Menon", nationality: "India", dob: "1990-04-15",
+      place_of_birth: "Kochi", email: "rahul.menon@example.com", mobile: "+971 50 123 4567",
+      passport_no: "N4821937", passport_issue_date: "2019-06-10", passport_expiry: "2029-06-09",
+      application_type: "new", visa_type: "Employment", profession: "Software Engineer",
+      sponsor_company: "Desert Peak Technologies FZ-LLC", licence_no: "FZ-104522", monthly_salary: "18000",
+    };
+    for (const [k, v] of Object.entries(sample)) if (form.elements[k]) form.elements[k].value = v;
+    form.querySelector('input[name="sex"][value="M"]').checked = true;
+    form.querySelectorAll("[aria-invalid]").forEach((el) => setError(el, ""));
+  });
+
+  show(0);
+})();
+</script>
+</body>
+</html>
