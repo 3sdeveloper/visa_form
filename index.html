@@ -51,7 +51,9 @@
       border: 1px solid var(--line); background: var(--card); color: var(--text); }
     button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
     button:disabled { opacity: .5; cursor: not-allowed; }
-    .panel[hidden] { display: none; }
+    .panel[hidden], .error-banner[hidden] { display: none; }
+    .error-banner { border: 1px solid var(--error); color: var(--error); border-radius: var(--radius);
+      padding: 10px 14px; margin-bottom: 20px; font-size: 14px; font-weight: 500; }
     .summary { width: 100%; border-collapse: collapse; font-size: 14px; }
     .summary th { text-align: left; font-weight: 500; color: var(--muted); width: 40%; padding: 6px 8px 6px 0; vertical-align: top; }
     .summary td { padding: 6px 0; border-bottom: 1px solid var(--line); word-break: break-word; }
@@ -79,9 +81,11 @@
     <li data-step="4">5. Review</li>
   </ol>
 
+  <div class="error-banner" id="errorBanner" role="alert" hidden></div>
+
   <form id="visa-form" novalidate>
     <!-- Step 1: applicant -->
-    <section class="panel" data-panel="0">
+    <section class="panel" id="applicantPanel" data-panel="0">
       <fieldset>
         <legend>Applicant details</legend>
         <div class="grid">
@@ -137,7 +141,7 @@
     </section>
 
     <!-- Step 2: passport -->
-    <section class="panel" data-panel="1" hidden>
+    <section class="panel" id="passportPanel" data-panel="1" hidden>
       <fieldset>
         <legend>Passport</legend>
         <div class="grid">
@@ -170,7 +174,7 @@
     </section>
 
     <!-- Step 3: visa & sponsor -->
-    <section class="panel" data-panel="2" hidden>
+    <section class="panel" id="visaPanel" data-panel="2" hidden>
       <fieldset>
         <legend>Visa &amp; sponsor</legend>
         <div class="grid">
@@ -238,7 +242,7 @@
     </section>
 
     <!-- Step 4: attachments -->
-    <section class="panel" data-panel="3" hidden>
+    <section class="panel" id="attachmentsPanel" data-panel="3" hidden>
       <fieldset>
         <legend>Attachments</legend>
         <div class="grid">
@@ -266,7 +270,7 @@
     </section>
 
     <!-- Step 5: review -->
-    <section class="panel" data-panel="4" hidden>
+    <section class="panel" id="reviewPanel" data-panel="4" hidden>
       <fieldset>
         <legend>Review your application</legend>
         <table class="summary" id="summary"></table>
@@ -278,7 +282,7 @@
       </fieldset>
     </section>
 
-    <section class="panel" data-panel="5" hidden>
+    <section class="panel" id="resultPanel" data-panel="5" hidden>
       <fieldset class="result">
         <h2 style="margin-top:0">Application submitted</h2>
         <p>Reference number</p>
@@ -368,7 +372,17 @@
       setError(el, msg);
       if (msg && !firstBad) firstBad = el;
     }
-    if (firstBad) firstBad.focus();
+    const banner = document.getElementById("errorBanner");
+    if (firstBad) {
+      const label = firstBad.type === "radio" ? "Sex" : (form.querySelector(`label[for="${firstBad.id}"]`)?.textContent || firstBad.name);
+      banner.textContent = `${label}: ${errBox(firstBad)?.textContent || "Please check this field."}`;
+      banner.dataset.field = firstBad.id || firstBad.name;
+      banner.hidden = false;
+      firstBad.focus();
+    } else {
+      banner.hidden = true;
+      delete banner.dataset.field;
+    }
     return !firstBad;
   }
 
@@ -401,6 +415,7 @@
 
   function show(i) {
     step = i;
+    document.getElementById("errorBanner").hidden = true;
     panels.forEach((p, idx) => (p.hidden = idx !== i));
     stepItems.forEach((li, idx) => {
       li.classList.toggle("active", idx === i);
